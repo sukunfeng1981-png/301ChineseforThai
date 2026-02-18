@@ -67,7 +67,6 @@
             font-size: 14px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s;
         }
 
         .score-board {
@@ -75,7 +74,6 @@
             color: #c0392b;
             font-weight: bold;
         }
-        .score-val { font-size: 22px; display: block; }
 
         h1 {
             margin: 0;
@@ -103,11 +101,11 @@
             cursor: pointer;
             display: flex; 
             align-items: center;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.3s ease;
             position: relative;
-            z-index: 1;
         }
 
+        /* 序号样式 - 确保显示 */
         .sentence-no {
             font-size: 18px;
             color: #7f8c8d;
@@ -115,17 +113,18 @@
             min-width: 35px;
             font-family: Arial, sans-serif;
             font-weight: bold;
+            display: block !important; 
         }
 
-        /* 2. 应用手写字体 */
         .text-content {
-            font-size: 23px; /* 手写体通常偏小，略微调大 */
+            font-size: 22px; 
             text-align: left;
             line-height: 1.3;
             flex: 1;
             color: #2c3e50;
         }
 
+        /* 字体切换逻辑 */
         .zh-span { 
             display: none; 
             font-family: 'CN-Handwriting', serif; 
@@ -135,22 +134,23 @@
             font-family: 'TH-Handwriting', sans-serif; 
         }
 
-        .show-zh .zh-span { display: block; }
-        .show-zh .th-span { display: none; }
+        /* 激活中文模式后的显示 */
+        body.show-zh .zh-span { display: block !important; }
+        body.show-zh .th-span { display: none !important; }
 
-        /* 播放中的膨胀效果 */
+        /* 播放中的 MacBook 1.2倍膨胀效果 */
         .playing-now {
             background-color: #ffffff !important;
             border: 1px solid #e74c3c !important;
-            transform: scale(1.2) !important; 
-            z-index: 999 !important; 
-            box-shadow: 0 15px 40px rgba(192, 57, 43, 0.3);
+            transform: scale(1.15) !important; 
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(192, 57, 43, 0.2);
         }
 
-        /* 3. 已学完的绿色框效果 */
+        /* 点读完毕后的绿色框效果 */
         .has-learned {
-            border: 1px solid #27ae60 !important; /* 绿色边框 */
-            background-color: rgba(39, 174, 96, 0.05) !important; /* 极淡的绿色背景 */
+            border: 1px solid #27ae60 !important;
+            background-color: rgba(39, 174, 96, 0.05) !important;
         }
         .has-learned .sentence-no { color: #27ae60; }
 
@@ -163,7 +163,7 @@
         }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
     <div class="phone-container">
         <header>
@@ -181,7 +181,7 @@
     </div>
 
     <script>
-        [cite_start]// 数据源由 [cite: 1] 提供
+        // 核心数据 
         const sentences = [
             { id: 1, th: "สวัสดี", zh: "你好" },
             { id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" },
@@ -222,7 +222,7 @@
             { id: 37, th: "ตอนนี้กี่โมง", zh: "现在几点，" },
             { id: 38, th: "ตอนนี้ 7 โมง 25 นาที", zh: "现在七点二十五分，" },
             { id: 39, th: "คุณไปเรียนกี่โมง", zh: "你几点上课，" },
-            { id: 40, th: "差一刻8点去，", zh: "差一刻8点去，" },
+            { id: 40, th: "差一刻8点去", zh: "差一刻8点去，" },
             { id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" },
             { id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "我们什么时候去，" },
             { id: 43, th: "เช้าเกินไปแล้ว", zh: "太早了，" },
@@ -281,7 +281,7 @@
             { id: 96, th: "คุณกรุณาช่วยผมเลือกซักสองสามแบบ", zh: "请你帮我挑几种，" },
             { id: 97, th: "เอาแบบละหนึ่งชุด", zh: "一种买一套吧，" },
             { id: 98, th: "โทรศัพท์แบตเตอรี่หมดแล้ว", zh: "手机没电了，" },
-            { id: 99, th: "คุณโทรติดหรือยัง", zh: "你打通电话了吗，" },
+            { id: 99, th: "คุณโทรติด或还还没", zh: "你打通电话了吗，" },
             { id: 100, th: "เขาปิดเครื่องแล้ว", zh: "她关机了，" }
         ];
 
@@ -293,14 +293,13 @@
 
         const listEl = document.getElementById('list');
         const scoreEl = document.getElementById('totalScore');
+        const bodyEl = document.getElementById('mainBody');
 
         function init() {
-            // 已移除 loadSavedProgress
             sentences.forEach(s => {
                 audioToggles[s.id] = true;
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
-                li.id = `item-${s.id}`; // 增加ID方便操作
                 li.innerHTML = `
                     <div class="sentence-no">${s.id}.</div>
                     <div class="text-content">
@@ -316,7 +315,11 @@
 
         function toggleLanguage() {
             isChineseActive = !isChineseActive;
-            document.body.classList.toggle('show-zh', isChineseActive);
+            if (isChineseActive) {
+                bodyEl.classList.add('show-zh');
+            } else {
+                bodyEl.classList.remove('show-zh');
+            }
         }
 
         function updateScore() {
@@ -324,12 +327,8 @@
         }
 
         function handlePlay(s, element) {
-            // 播放时锁定，并显示红色膨胀
-            document.body.classList.add('locked-mode');
-            element.classList.remove('has-learned'); // 重新播放时先移除绿色
+            // 播放时视觉反馈
             element.classList.add('playing-now');
-
-            // 逻辑处理
             learnedSentences.add(s.id);
             updateScore();
 
@@ -343,17 +342,15 @@
             audioToggles[s.id] = !audioToggles[s.id];
             lastPlayedId = s.id;
 
-            audioObj.play().catch(() => unlock(element));
+            audioObj.play().catch(() => resetState(element));
             
-            // 播放结束后的逻辑
             audioObj.onended = () => {
-                element.classList.add('has-learned'); // 关键：增加绿色框
-                unlock(element);
+                element.classList.remove('playing-now');
+                element.classList.add('has-learned'); // 播放结束变绿
             };
         }
 
-        function unlock(element) {
-            document.body.classList.remove('locked-mode');
+        function resetState(element) {
             element.classList.remove('playing-now');
         }
 
