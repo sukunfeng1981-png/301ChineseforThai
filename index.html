@@ -5,8 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Chinese SDU - 100 Sentences</title>
+    <title>Chinese SDU - 手写点读版</title>
     <style>
+        /* 1. 声明自定义手写字体 */
+        @font-face {
+            font-family: 'CN-Handwriting';
+            src: url('fonts/zhongbing.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'TH-Handwriting';
+            src: url('fonts/thaimi.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -62,17 +77,6 @@
         }
         .score-val { font-size: 22px; display: block; }
 
-        .reset-btn {
-            background: transparent;
-            color: #7f8c8d;
-            border: 1px solid #7f8c8d;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-
         h1 {
             margin: 0;
             font-size: 24px;
@@ -113,27 +117,28 @@
             font-weight: bold;
         }
 
+        /* 2. 应用手写字体 */
         .text-content {
-            font-size: 20px;
+            font-size: 23px; /* 手写体通常偏小，略微调大 */
             text-align: left;
             line-height: 1.3;
             flex: 1;
             color: #2c3e50;
         }
 
-        /* 核心显示逻辑 */
-        .zh-span { display: none; }
-        .th-span { display: block; font-family: "Leelawadee", sans-serif; }
+        .zh-span { 
+            display: none; 
+            font-family: 'CN-Handwriting', serif; 
+        }
+        .th-span { 
+            display: block; 
+            font-family: 'TH-Handwriting', sans-serif; 
+        }
 
-        /* 切换至中文模式 */
         .show-zh .zh-span { display: block; }
         .show-zh .th-span { display: none; }
 
-        .locked-mode .sentence-item:not(.playing-now) {
-            opacity: 0.5;
-        }
-        
-        /* MacBook Dock 膨胀效果 1.2倍 */
+        /* 播放中的膨胀效果 */
         .playing-now {
             background-color: #ffffff !important;
             border: 1px solid #e74c3c !important;
@@ -142,10 +147,12 @@
             box-shadow: 0 15px 40px rgba(192, 57, 43, 0.3);
         }
 
-        .playing-now .text-content, .playing-now .sentence-no {
-            color: #c0392b;
-            font-weight: bold;
+        /* 3. 已学完的绿色框效果 */
+        .has-learned {
+            border: 1px solid #27ae60 !important; /* 绿色边框 */
+            background-color: rgba(39, 174, 96, 0.05) !important; /* 极淡的绿色背景 */
         }
+        .has-learned .sentence-no { color: #27ae60; }
 
         .footer-deco {
             padding: 20px 0;
@@ -164,7 +171,6 @@
                 <button class="lang-switch-btn" onclick="toggleLanguage()">中文 / ไทย</button>
                 <div class="score-board">
                     <span id="totalScore">0/100</span>
-                    <br><button class="reset-btn" onclick="resetProgress()">重置进度</button>
                 </div>
             </div>
             <h1>汉语口语301</h1>
@@ -175,6 +181,7 @@
     </div>
 
     <script>
+        [cite_start]// 数据源由 [cite: 1] 提供
         const sentences = [
             { id: 1, th: "สวัสดี", zh: "你好" },
             { id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" },
@@ -215,7 +222,7 @@
             { id: 37, th: "ตอนนี้กี่โมง", zh: "现在几点，" },
             { id: 38, th: "ตอนนี้ 7 โมง 25 นาที", zh: "现在七点二十五分，" },
             { id: 39, th: "คุณไปเรียนกี่โมง", zh: "你几点上课，" },
-            { id: 40, th: "ไปตอนอีก 15 นาทีจะ 8 โมง", zh: "差一刻8点去，" },
+            { id: 40, th: "差一刻8点去，", zh: "差一刻8点去，" },
             { id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" },
             { id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "我们什么时候去，" },
             { id: 43, th: "เช้าเกินไปแล้ว", zh: "太早了，" },
@@ -226,7 +233,7 @@
             { id: 48, th: "บ้านคุณอยู่ที่ไหน", zh: "你家在哪儿，" },
             { id: 49, th: "ยินดีต้อนรับคุณไปเที่ยว", zh: "欢迎你去玩，" },
             { id: 50, th: "เขาไปบ่อย", zh: "她常去，" },
-            { id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "เรามาเริ่มกันเถอะ" },
+            { id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "我们一起去吧，" },
             { id: 52, th: "ถ้าอย่างนั้นดีมากๆเลย", zh: "那太好了，" },
             { id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" },
             { id: 54, th: "ไปตึก 8 ไปอย่างไร", zh: "去八号楼怎么走，" },
@@ -287,32 +294,13 @@
         const listEl = document.getElementById('list');
         const scoreEl = document.getElementById('totalScore');
 
-        function loadSavedProgress() {
-            const saved = localStorage.getItem('chineseProgress');
-            if (saved) {
-                learnedSentences = new Set(JSON.parse(saved));
-            }
-        }
-
-        function saveProgress() {
-            localStorage.setItem('chineseProgress', JSON.stringify([...learnedSentences]));
-        }
-
-        function resetProgress() {
-            if (confirm("确定要清空所有学习记录吗？")) {
-                learnedSentences.clear();
-                saveProgress();
-                updateScore();
-                window.location.reload();
-            }
-        }
-
         function init() {
-            loadSavedProgress();
+            // 已移除 loadSavedProgress
             sentences.forEach(s => {
                 audioToggles[s.id] = true;
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
+                li.id = `item-${s.id}`; // 增加ID方便操作
                 li.innerHTML = `
                     <div class="sentence-no">${s.id}.</div>
                     <div class="text-content">
@@ -336,11 +324,13 @@
         }
 
         function handlePlay(s, element) {
+            // 播放时锁定，并显示红色膨胀
             document.body.classList.add('locked-mode');
+            element.classList.remove('has-learned'); // 重新播放时先移除绿色
             element.classList.add('playing-now');
 
+            // 逻辑处理
             learnedSentences.add(s.id);
-            saveProgress();
             updateScore();
 
             if (lastPlayedId !== s.id) {
@@ -354,7 +344,12 @@
             lastPlayedId = s.id;
 
             audioObj.play().catch(() => unlock(element));
-            audioObj.onended = () => unlock(element);
+            
+            // 播放结束后的逻辑
+            audioObj.onended = () => {
+                element.classList.add('has-learned'); // 关键：增加绿色框
+                unlock(element);
+            };
         }
 
         function unlock(element) {
