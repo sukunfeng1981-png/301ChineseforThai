@@ -2,16 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Chinese SDU - 手写点读版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>汉语口语301 - 全端点读版</title>
 
     <link rel="preload" href="fonts/cn-YSHaoShenTi.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/th-MaliThin-Regular.ttf" as="font" type="font/truetype" crossorigin>
 
     <style>
-        /* 2. 声明自定义字体 */
         @font-face {
             font-family: 'CN-Handwriting';
             src: url('fonts/cn-YSHaoShenTi.woff2') format('woff2');
@@ -26,69 +23,64 @@
         body {
             margin: 0; padding: 0; background-color: #f4f1de; 
             background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');
-            font-family: 'CN-Handwriting', 'TH-Handwriting', "Kaiti", "STKaiti", "楷体", serif;
-            display: flex; justify-content: center; height: 100vh; overflow: hidden;
+            font-family: 'CN-Handwriting', 'TH-Handwriting', "Kaiti", "PingFang SC", sans-serif;
+            display: flex; justify-content: center;
+            min-height: 100vh;
         }
 
-        body.locked-mode { cursor: wait; }
+        /* 播放时全局锁定 */
+        body.locked-mode { pointer-events: none; cursor: wait; }
 
         .phone-container {
-            width: 100%; max-width: 393px; height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            position: relative; display: flex; flex-direction: column; box-sizing: border-box;
+            width: 100%; max-width: 500px;
+            background: rgba(255,255,255,0.2);
+            display: flex; flex-direction: column;
+            min-height: 100vh;
         }
 
         header {
-            padding: 50px 25px 15px; z-index: 100;
-            background: linear-gradient(to bottom, #f4f1de 80%, rgba(244,241,222,0));
+            padding: 40px 20px 15px;
+            position: sticky; top: 0;
+            background: #f4f1de; z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .lang-switch-btn {
             background: #2c3e50; color: #f4f1de; border: none;
-            padding: 8px 18px; border-radius: 25px; font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px 20px; border-radius: 25px; font-size: 14px; cursor: pointer;
         }
-
-        .score-board { text-align: right; color: #c0392b; font-weight: bold; }
+        .score-board { color: #c0392b; font-weight: bold; font-size: 18px; }
 
         h1 { margin: 0; font-size: 24px; color: #2c3e50; border-left: 5px solid #c0392b; padding-left: 12px; }
 
         .sentence-list {
-            flex: 1; overflow-y: auto; padding: 10px 20px 60px;
-            list-style: none; margin: 0; -webkit-overflow-scrolling: touch;
+            list-style: none; margin: 0; padding: 15px;
+            flex: 1;
         }
 
         .sentence-item {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(44, 62, 80, 0.1);
-            margin-bottom: 12px; padding: 20px 18px; border-radius: 15px;
+            background: #ffffff; border: 1px solid rgba(44, 62, 80, 0.1);
+            margin-bottom: 12px; padding: 18px; border-radius: 15px;
             cursor: pointer; display: flex; align-items: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
+        .sentence-item:active { transform: scale(0.98); }
 
         .sentence-no { font-size: 18px; color: #7f8c8d; margin-right: 15px; min-width: 35px; font-weight: bold; }
+        .text-content { font-size: 22px; line-height: 1.4; flex: 1; color: #2c3e50; }
 
-        .text-content { font-size: 22px; line-height: 1.3; flex: 1; color: #2c3e50; }
+        /* 初始状态：只显示泰文 */
+        .zh-text { display: none; color: #c0392b; }
+        .th-text { display: block; }
 
-        .zh-span { display: none; font-family: 'CN-Handwriting', serif; }
-        .th-span { display: block; font-family: 'TH-Handwriting', sans-serif; }
-
-        body.show-zh .zh-span { display: block !important; }
-        body.show-zh .th-span { display: none !important; }
-
-        .playing-now {
-            background-color: #ffffff !important;
-            border: 1px solid #e74c3c !important;
-            transform: scale(1.05); z-index: 99;
-            box-shadow: 0 10px 30px rgba(192, 57, 43, 0.2);
-        }
-
-        .has-learned { border: 1px solid #27ae60 !important; background-color: rgba(39, 174, 96, 0.05) !important; }
+        /* 播放中和已学过的样式 */
+        .playing-now { border: 2px solid #e74c3c !important; background: #fffcfb !important; }
+        .has-learned { border: 1px solid #27ae60 !important; background: rgba(39, 174, 96, 0.05) !important; }
         .has-learned .sentence-no { color: #27ae60; }
 
-        .footer-deco { padding: 20px 0; text-align: center; opacity: 0.2; font-size: 12px; }
+        .footer-deco { padding: 40px 20px; text-align: center; opacity: 0.3; font-size: 12px; }
     </style>
 </head>
 <body id="mainBody">
@@ -96,214 +88,175 @@
     <div class="phone-container">
         <header>
             <div class="top-bar">
-                <button class="lang-switch-btn" onclick="toggleLanguage()">中文 / ไทย</button>
-                <div class="score-board">
-                    <span id="totalScore">0/100</span>
-                </div>
+                <button class="lang-switch-btn" onclick="toggleLanguage()">切换 中文/泰文</button>
+                <div class="score-board"><span id="totalScore">0/100</span></div>
             </div>
-            <h1>汉语口语301</h1>
+            <h1 id="titleText">汉语口语 100 句</h1>
         </header>
-        <ul class="sentence-list" id="list"></ul>
-        <div class="footer-deco">一一一 汉语口语100句点读 一一一</div>
+        
+        <ul class="sentence-list" id="list">
+            </ul>
+
+        <div class="footer-deco">一一一 汉语口语点读版 一一一</div>
     </div>
 
     <script>
+        // 核心数据
         const sentences = [
-            [cite_start]{ id: 1, th: "สวัสดี", zh: "你好" }, [cite: 1]
-            [cite_start]{ id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" }, [cite: 1]
-            [cite_start]{ id: 3, th: "สบายดี", zh: "很好，" }, [cite: 1]
-            [cite_start]{ id: 4, th: "ฉันก็สบายดีเช่นกัน", zh: "我也很好，" }, [cite: 1]
-            [cite_start]{ id: 5, th: "อรุณสวัสดิ์", zh: "你早，" }, [cite: 1]
-            [cite_start]{ id: 6, th: "คุณสุขภาพดีไหม", zh: "你身体好吗？" }, [cite: 1]
-            [cite_start]{ id: 7, th: "ขอบคุณ", zh: "谢谢" }, [cite: 1]
-            [cite_start]{ id: 8, th: "ลาก่อน / แล้วพบกันใหม่", zh: "再见，" }, [cite: 1]
-            [cite_start]{ id: 9, th: "คุณงานยุ่งไหม", zh: "你工作忙吗，" }, [cite: 1]
-            [cite_start]{ id: 10, th: "ยุ่งมาก คุณล่ะ", zh: "很忙，你呢，" }, [cite: 1]
-            [cite_start]{ id: 11, th: "ฉันไม่ค่อยยุ่ง", zh: "我不太忙，" }, [cite: 1]
-            [cite_start]{ id: 12, th: "พ่อแม่คุณสุขภาพดีไหม", zh: "你爸爸妈妈身体好吗？" }, [cite: 1]
-            [cite_start]{ id: 13, th: "ฉันชื่อ Mary ค่ะ", zh: "我叫玛丽，" }, [cite: 1]
-            [cite_start]{ id: 14, th: "ยินดีที่ได้รู้จักคุณ", zh: "认识你我很高兴，" }, [cite: 1]
-            [cite_start]{ id: 15, th: "คุณแซ่อะไร", zh: "您贵姓，" }, [cite: 1]
-            [cite_start]{ id: 16, th: "คุณชื่ออะไร", zh: "你叫什么名字，" }, [cite: 1]
-            [cite_start]{ id: 17, th: "เขาแซ่อะไร", zh: "他姓什么，" }, [cite: 1]
-            [cite_start]{ id: 18, th: "เขาไม่ใช่อาจารย์ เขาเป็นนักเรียน", zh: "他不是老师，他是学生" }, [cite: 1]
-            [cite_start]{ id: 19, th: "เขาเป็นใคร", zh: "他是谁，" }, [cite: 1]
-            [cite_start]{ id: 20, th: "ผมขอแนะนำสักหน่อย", zh: "我介绍一下，" }, [cite: 1]
-            [cite_start]{ id: 21, th: "คุณจะไปไหน", zh: "你去哪，" }, [cite: 1]
-            [cite_start]{ id: 22, th: "อาจารย์ Zhang อยู่บ้านไหม", zh: "张老师在家吗？" }, [cite: 1]
-            [cite_start]{ id: 23, th: "ฉันเป็นลูกศิษย์ของอาจารย์ Zhang", zh: "我是张老师的学生，" }, [cite: 1]
-            [cite_start]{ id: 24, th: "เชิญเข้ามาข้างในก่อน", zh: "请进，" }, [cite: 1]
-            [cite_start]{ id: 25, th: "วันนี้วันที่เท่าไร", zh: "今天几号，" }, [cite: 1]
-            [cite_start]{ id: 26, th: "วันนี้วันที่ 8", zh: "今天8号，" }, [cite: 1]
-            [cite_start]{ id: 27, th: "วันนี้ไม่ใช่วันพฤหัส เมื่อวานวันพฤหัส", zh: "今天不是星期四，昨天星期四，" }, [cite: 1]
-            [cite_start]{ id: 28, th: "ตอนเย็นคุณทำอะไร", zh: "晚上你做什么，" }, [cite: 1]
-            [cite_start]{ id: 29, th: "วันเกิดของคุณวันที่เท่าไร เดือนอะไร", zh: "你的生日是几月几号，" }, [cite: 1]
-            [cite_start]{ id: 30, th: "ตอนเช้าพวกเราไปบ้านเขา ดีไหม", zh: "我们上午去他家好吗？" }, [cite: 1]
-            [cite_start]{ id: 31, th: "ครอบครัวคุณมีกี่คน", zh: "你家有几口人，" }, [cite: 1]
-            [cite_start]{ id: 32, th: "คุณแม่คุณทำงานอะไร", zh: "你妈妈做什么工作，" }, [cite: 1]
-            [cite_start]{ id: 33, th: "เขาทำงานที่มหาวิทยาลัย", zh: "她在大学工作，" }, [cite: 1]
-            [cite_start]{ id: 34, th: "ครอบครัวผมมีคุณพ่อ คุณแม่ และน้องชายอีก 1 คน", zh: "我家有爸爸，妈妈和一个弟弟，" }, [cite: 1]
-            [cite_start]{ id: 35, th: "พี่ชายแต่งงานแล้ว", zh: "哥哥结婚了，" }, [cite: 1]
-            [cite_start]{ id: 36, th: "พวกเขาไม่มีลูก", zh: "他们没有孩子。" }, [cite: 1]
-            [cite_start]{ id: 37, th: "ตอนนี้กี่โมง", zh: "现在几点，" }, [cite: 1]
-            [cite_start]{ id: 38, th: "ตอนนี้ 7 โมง 25 นาที", zh: "现在七点二十五分，" }, [cite: 1]
-            [cite_start]{ id: 39, th: "คุณไปเรียนกี่โมง", zh: "你几点上课，" }, [cite: 1]
-            [cite_start]{ id: 40, th: "ไปตอนอีก 15 นาทีจะ 8 โมง", zh: "差一刻8点去，" }, [cite: 1]
-            [cite_start]{ id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" }, [cite: 1]
-            [cite_start]{ id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "我们什么时候去，" }, [cite: 1]
-            [cite_start]{ id: 43, th: "เช้าเกินไปแล้ว", zh: "太早了，" }, [cite: 1]
-            [cite_start]{ id: 44, th: "ผมก็ตื่น 6 โมงครึ่งเช่นกัน", zh: "我也六点半起床，" }, [cite: 1]
-            [cite_start]{ id: 45, th: "คุณพักอยู่ที่ไหน", zh: "你住在哪儿，" }, [cite: 1]
-            [cite_start]{ id: 46, th: "ผมพักอยู่ที่หอพักนักศึกษาต่างชาติ", zh: "我住在留学生宿舍，" }, [cite: 1]
-            [cite_start]{ id: 47, th: "ห้องพักหมายเลขอะไร", zh: "多少号房间，" }, [cite: 1]
-            [cite_start]{ id: 48, th: "บ้านคุณอยู่ที่ไหน", zh: "你家在哪儿，" }, [cite: 1]
-            [cite_start]{ id: 49, th: "ยินดีต้อนรับคุณไปเที่ยว", zh: "欢迎你去玩，" }, [cite: 1]
-            [cite_start]{ id: 50, th: "เขาไปบ่อย", zh: "她常去，" }, [cite: 1]
-            [cite_start]{ id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "我们一起去吧，" }, [cite: 1]
-            [cite_start]{ id: 52, th: "ถ้าอย่างนั้นดีมากๆเลย", zh: "那太好了，" }, [cite: 1]
-            [cite_start]{ id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" }, [cite: 1]
-            [cite_start]{ id: 54, th: "ไปตึก 8 ไปอย่างไร", zh: "去八号楼怎么走，" }, [cite: 1]
-            [cite_start]{ id: 55, th: "ตึกนั้นก็คือตึก 8", zh: "那个楼就是八号楼，" }, [cite: 1]
-            [cite_start]{ id: 56, th: "ขอถามหน่อยครับ ที่ทำการไปรษณีย์อยู่ที่ไหนครับ", zh: "请问，邮局在哪儿，" }, [cite: 1]
-            [cite_start]{ id: 57, th: "เดินตรงไปข้างหน้าก็จะเป็นที่ทำการไปรษณีย์", zh: "往前走就是邮局，" }, [cite: 1]
-            [cite_start]{ id: 58, th: "ที่ทำการไปรษณีย์อยู่ไกลจากที่นี่ไหม", zh: "邮局离这远不远，" }, [cite: 1]
-            [cite_start]{ id: 59, th: "ห้างสรรพสินค้าอยู่ที่ไหน", zh: "百货大楼在什么地方，" }, [cite: 1]
-            [cite_start]{ id: 60, th: "ขึ้นรถที่ไหน", zh: "在哪儿坐车，" }, [cite: 1]
-            [cite_start]{ id: 61, th: "คุณต้องการอะไร", zh: "您要什么，" }, [cite: 1]
-            [cite_start]{ id: 62, th: "แอปเปิ้ลชั่งละเท่าไร", zh: "苹果多少钱一斤，" }, [cite: 1]
-            [cite_start]{ id: 63, th: "ชั่งละ 7 หยวน 5 เหมา", zh: "七块五一斤，" }, [cite: 1]
-            [cite_start]{ id: 64, th: "คุณต้องการเท่าไร", zh: "您要多少，" }, [cite: 1]
-            [cite_start]{ id: 65, th: "คุณต้องการอย่างอื่นอีกไหม", zh: "您还要别的吗，" }, [cite: 1]
-            [cite_start]{ id: 66, th: "ไม่ต้องการแล้ว", zh: "不要了，" }, [cite: 1]
-            [cite_start]{ id: 67, th: "ฉันต้องการซื้อส้ม", zh: "我要买橘子，" }, [cite: 2]
-            [cite_start]{ id: 68, th: "คุณลองชิมสิ", zh: "您尝尝，" }, [cite: 2]
-            [cite_start]{ id: 69, th: "อากาศหนาวแล้ว", zh: "天冷了，" }, [cite: 2]
-            [cite_start]{ id: 70, th: "ผมอยากจะซื้อเสื้อไหมพรมสักตัวหนึ่ง", zh: "我想买件毛衣，" }, [cite: 2]
-            [cite_start]{ id: 71, th: "ไปวันอาทิตย์ดีไหม", zh: "星期天去，怎么样？" }, [cite: 2]
-            [cite_start]{ id: 72, th: "วันอาทิตย์คนเยอะเกินไป", zh: "星期天人多，" }, [cite: 2]
-            [cite_start]{ id: 73, th: "ฉันขอดูเสื้อไหมพรมตัวนั้นหน่อย", zh: "我看看那件毛衣，" }, [cite: 2]
-            [cite_start]{ id: 74, th: "เสื้อไหมพรมตัวนี้ผมขอลองหน่อยได้ไหม", zh: "这件毛衣我可以试试吗，" }, [cite: 2]
-            [cite_start]{ id: 75, th: "เสื้อไหมพรมตัวนี้ ไม่เล็กก็ไม่ใหญ่", zh: "这件毛衣不大也不小，" }, [cite: 2]
-            [cite_start]{ id: 76, th: "เยี่ยมมากเลย", zh: "好极了，" }, [cite: 2]
-            [cite_start]{ id: 77, th: "รถสายนี้ไปจตุรัสเทียนอันเหมินไหม", zh: "这路车到天安门吗，" }, [cite: 2]
-            [cite_start]{ id: 78, th: "ผมซื้อตั๋ว 2 ใบ", zh: "我买两张票，" }, [cite: 2]
-            [cite_start]{ id: 79, th: "ให้คุณ 5 หยวน", zh: "给你五块钱，" }, [cite: 2]
-            [cite_start]{ id: 80, th: "ถึงจตุรัสเทียนอันเหมินยังอีกกี่ป้าย", zh: "到天安门还有几站，" }, [cite: 2]
-            [cite_start]{ id: 81, th: "ฉันพูดภาษาจีนได้นิดหน่อย", zh: "我会说一点汉语，" }, [cite: 2]
-            [cite_start]{ id: 82, th: "ถึงจตุรัสเทียนอันเหมินแล้ว", zh: "天安门到了，" }, [cite: 2]
-            [cite_start]{ id: 83, th: "ไปมหาวิทยาลัยภาษาต้องเปลี่ยนรถไหม", zh: "去语言大学要换车吗，" }, [cite: 2]
-            [cite_start]{ id: 84, th: "เปลี่ยนรถสายไหน", zh: "换几路车，" }, [cite: 2]
-            [cite_start]{ id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" }, [cite: 2]
-            [cite_start]{ id: 86, th: "ได้ยินมาว่าในโรงแรมสามารถแลกเงินได้", zh: "听说饭店里可以换钱，" }, [cite: 2]
-            [cite_start]{ id: 87, th: "ที่นี่ แลกเงินได้หรือไม่ได้", zh: "这能不能换钱，" }, [cite: 2]
-            [cite_start]{ id: 88, th: "คุณนำเงินอะไรมา", zh: "您带的什么钱，" }, [cite: 2]
-            [cite_start]{ id: 89, th: "คุณกรุณาเขียนจำนวนเงินตรงนี้หน่อย", zh: "请您在这写一下钱数，" }, [cite: 2]
-            [cite_start]{ id: 90, th: "กรุณานับด้วย", zh: "请数一数，" }, [cite: 2]
-            [cite_start]{ id: 91, th: "สายแล้ว / ดึกแล้ว", zh: "时间不早了，" }, [cite: 2]
-            [cite_start]{ id: 92, th: "พวกเรารีบไปกันเถอะ", zh: "我们快走吧，" }, [cite: 2]
-            [cite_start]{ id: 93, th: "นี่เป็นโปสการ์ดออกใหม่", zh: "这是新出的明信片，" }, [cite: 2]
-            [cite_start]{ id: 94, th: "ยังมีที่สวยๆอีกไหม", zh: "还有好看的吗，" }, [cite: 2]
-            [cite_start]{ id: 95, th: "สองสามแบบนี้เป็นอย่างไรบ้าง", zh: "这几肿怎么样，" }, [cite: 2]
-            [cite_start]{ id: 96, th: "คุณกรุณาช่วยผมเลือกซักสองสามแบบ", zh: "请你帮我挑几种，" }, [cite: 2]
-            [cite_start]{ id: 97, th: "เอาแบบละหนึ่งชุด", zh: "一种买一套吧，" }, [cite: 2]
-            [cite_start]{ id: 98, th: "โทรศัพท์แบตเตอรี่หมดแล้ว", zh: "手机没电了，" }, [cite: 2]
-            [cite_start]{ id: 99, th: "คุณโทรติดหรือยัง", zh: "你打通电话了吗，" }, [cite: 2]
-            [cite_start]{ id: 100, th: "เขาปิดเครื่องแล้ว", zh: "她关机了，" } [cite: 2]
+            { id: 1, th: "สวัสดี", zh: "你好" }, { id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" },
+            { id: 3, th: "สบายดี", zh: "很好，" }, { id: 4, th: "ฉันก็สบายดีเช่นกัน", zh: "我也很好，" },
+            { id: 5, th: "อรุณสวัสดิ์", zh: "你早，" }, { id: 6, th: "คุณสุขภาพดีไหม", zh: "你身体好吗？" },
+            { id: 7, th: "ขอบคุณ", zh: "谢谢" }, { id: 8, th: "ลาก่อน / แล้วพบกันใหม่", zh: "再见，" },
+            { id: 9, th: "คุณงานยุ่งไหม", zh: "你工作忙吗，" }, { id: 10, th: "ยุ่งมาก คุณล่ะ", zh: "很忙，你呢，" },
+            { id: 11, th: "ฉันไม่ค่อยยุ่ง", zh: "我不太忙，" }, { id: 12, th: "พ่อแม่คุณสุขภาพดีไหม", zh: "你爸爸妈妈身体好吗？" },
+            { id: 13, th: "ฉันชื่อ Mary ค่ะ", zh: "我叫玛丽，" }, { id: 14, th: "ยินดีที่ได้รู้จักคุณ", zh: "认识你我很高兴，" },
+            { id: 15, th: "คุณแซ่อะไร", zh: "您贵姓，" }, { id: 16, th: "คุณชื่ออะไร", zh: "你叫什么名字，" },
+            { id: 17, th: "เขาแซ่อะไร", zh: "他姓什么，" }, { id: 18, th: "เขาไม่ใช่อาจารย์ เขาเป็นนักเรียน", zh: "他不是老师，他是学生" },
+            { id: 19, th: "เขาเป็นใคร", zh: "他是谁，" }, { id: 20, th: "ผมขอแนะนำสักหน่อย", zh: "我介绍一下，" },
+            { id: 21, th: "คุณจะไปไหน", zh: "你去哪，" }, { id: 22, th: "อาจารย์ Zhang อยู่บ้านไหม", zh: "张老师在家吗？" },
+            { id: 23, th: "ฉันเป็นลูกศิษย์ของอาจารย์ Zhang", zh: "我是张老师的学生，" }, { id: 24, th: "เชิญเข้ามาข้างในก่อน", zh: "请进，" },
+            { id: 25, th: "วันนี้วันที่เท่าไร", zh: "今天几号，" }, { id: 26, th: "วันนี้วันที่ 8", zh: "今天8号，" },
+            { id: 27, th: "วันนี้ไม่ใช่วันพฤหัส เมื่อวานวันพฤหัส", zh: "今天不是星期四，昨天星期四，" }, { id: 28, th: "ตอนเย็นคุณทำอะไร", zh: "晚上你做什么，" },
+            { id: 29, th: "วันเกิดของคุณวันที่เท่าไร เดือนอะไร", zh: "你的生日是几月几号，" }, { id: 30, th: "ตอนเช้าพวกเราไปบ้านเขา ดีไหม", zh: "我们上午去他家好吗？" },
+            { id: 31, th: "ครอบครัวคุณมีกี่คน", zh: "你家有几口人，" }, { id: 32, th: "คุณแม่คุณทำงานอะไร", zh: "你妈妈做什么工作，" },
+            { id: 33, th: "เขาทำงานที่มหาวิทยาลัย", zh: "她在大学工作，" }, { id: 34, th: "ครอบครัวผมมีคุณพ่อ คุณแม่ และน้องชายอีก 1 คน", zh: "我家有爸爸，妈妈和一个弟弟，" },
+            { id: 35, th: "พี่ชายแต่งงานแล้ว", zh: "哥哥结婚了，" }, { id: 36, th: "พวกเขาไม่มีลูก", zh: "他们没有孩子。" },
+            { id: 37, th: "ตอนนี้กี่โมง", zh: "现在几点，" }, { id: 38, th: "ตอนนี้ 7 โมง 25 นาที", zh: "现在七点二十五分，" },
+            { id: 39, th: "คุณไปเรียนกี่โมง", zh: "你几点上课，" }, { id: 40, th: "ไปตอนอีก 15 นาทีจะ 8 โมง", zh: "差一刻8点去，" },
+            { id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" }, { id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "我们什么时候去，" },
+            { id: 43, th: "เช้าเกินไปแล้ว", zh: "太早了，" }, { id: 44, th: "ผมก็ตื่น 6 โมงครึ่งเช่นกัน", zh: "我也六点半起床，" },
+            { id: 45, th: "คุณพักอยู่ที่ไหน", zh: "你住在哪儿，" }, { id: 46, th: "ผมพักอยู่ที่หอพักนักศึกษาต่างชาติ", zh: "我住在留学生宿舍，" },
+            { id: 47, th: "ห้องพักหมายเลขอะไร", zh: "多少号房间，" }, { id: 48, th: "บ้านคุณอยู่ที่ไหน", zh: "你家在哪儿，" },
+            { id: 49, th: "ยินดีต้อนรับคุณไปเที่ยว", zh: "欢迎你去玩，" }, { id: 50, th: "เขาไปบ่อย", zh: "她常去，" },
+            { id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "我们一起去吧，" }, { id: 52, th: "ถ้าอย่างนั้นดีมากๆเลย", zh: "那太好了，" },
+            { id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" }, { id: 54, th: "ไปตึก 8 ไปอย่างไร", zh: "去八号楼怎么走，" },
+            { id: 55, th: "ตึกนั้นก็คือตึก 8", zh: "那个楼就是八号楼，" }, { id: 56, th: "ขอถามหน่อยครับ ที่ทำการไปรษณีย์อยู่ที่ไหนครับ", zh: "请问，邮局在哪儿，" },
+            { id: 57, th: "เดินตรงไปข้างหน้าก็จะเป็นที่ทำการไปรษณีย์", zh: "往前走就是邮局，" }, { id: 58, th: "ที่ทำการไปรษณีย์อยู่ไกลจากที่นี่ไหม", zh: "邮局离这远不远，" },
+            { id: 59, th: "ห้างสรรพสินค้าอยู่ที่ไหน", zh: "百货大楼在什么地方，" }, { id: 60, th: "ขึ้นรถที่ไหน", zh: "在哪儿坐车，" },
+            { id: 61, th: "คุณต้องการอะไร", zh: "您要什么，" }, { id: 62, th: "แอปเปิ้ลชั่งละเท่าไร", zh: "苹果多少钱一斤，" },
+            { id: 63, th: "ชั่งละ 7 หยวน 5 เหมา", zh: "七块五一斤，" }, { id: 64, th: "คุณต้องการเท่าไร", zh: "您要多少，" },
+            { id: 65, th: "คุณต้องการอย่างอื่นอีกไหม", zh: "您还要别的吗，" }, { id: 66, th: "ไม่ต้องการแล้ว", zh: "不要了，" },
+            { id: 67, th: "ฉันต้องการซื้อส้ม", zh: "我要买橘子，" }, { id: 68, th: "คุณลองชิมสิ", zh: "您尝尝，" },
+            { id: 69, th: "อากาศหนาวแล้ว", zh: "天冷了，" }, { id: 70, th: "ผมอยากจะซื้อเสื้อไหมพรมสักตัวหนึ่ง", zh: "我想买件毛衣，" },
+            { id: 71, th: "ไปวันอาทิตย์ดีไหม", zh: "星期天去，怎么样？" }, { id: 72, th: "วันอาทิตย์คนเยอะเกินไป", zh: "星期天人多，" },
+            { id: 73, th: "ฉันขอดูเสื้อไหมพรมตัวนั้นหน่อย", zh: "我看看那件毛衣，" }, { id: 74, th: "เสื้อไหมพรมตัวนี้ผมขอลองหน่อยได้ไหม", zh: "这件毛衣我可以试试吗，" },
+            { id: 75, th: "เสื้อไหมพรมตัวนี้ 不大也不小", zh: "这件毛衣不大也不小，" }, { id: 76, th: "เยี่ยมมากเลย", zh: "好极了，" },
+            { id: 77, th: "รถสายนี้ไปจตุรัสเทียนอันเหมินไหม", zh: "这路车到天安门吗，" }, { id: 78, th: "ผมซื้อตั๋ว 2 ใบ", zh: "我买两张票，" },
+            { id: 79, th: "ให้คุณ 5 หยวน", zh: "给你五块钱，" }, { id: 80, th: "ถึงจตุรัสเทียนอันเหมินยังอีกกี่ป้าย", zh: "到天安门还有几站，" },
+            { id: 81, th: "ฉันพูดภาษาจีนได้นิดหน่อย", zh: "我会说一点汉语，" }, { id: 82, th: "ถึงจตุรัสเทียนอันเหมินแล้ว", zh: "天安门到了，" },
+            { id: 83, th: "去语言大学要换车吗", zh: "去语言大学要换车吗，" }, { id: 84, th: "换几路车", zh: "换几路车，" },
+            { id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" }, { id: 86, th: "听说饭店里可以换钱", zh: "听说饭店里可以换钱，" },
+            { id: 87, th: "这能不能换钱", zh: "这能不能换钱，" }, { id: 88, th: "您带的什么钱", zh: "您带的什么钱，" },
+            { id: 89, th: "请您在这写一下钱数", zh: "请您在这写一下钱数，" }, { id: 90, th: "请数一数", zh: "请数一数，" },
+            { id: 91, th: "时间不早了", zh: "时间不早了，" }, { id: 92, th: "我们快走吧", zh: "我们快走吧，" },
+            { id: 93, th: "这是新出的明信片", zh: "这是新出的明信片，" }, { id: 94, th: "还有好看的吗", zh: "还有好看的吗，" },
+            { id: 95, th: "这几种怎么样", zh: "这几种怎么样，" }, { id: 96, th: "请你帮我挑几种", zh: "请你帮我挑几种，" },
+            { id: 97, th: "一种买一套吧", zh: "一种买一套吧，" }, { id: 98, th: "手机没电了", zh: "手机没电了，" },
+            { id: 99, th: "你打通电话了吗", zh: "你打通电话了吗，" }, { id: 100, th: "她关机了", zh: "她关机了，" }
         ];
 
         let learnedSentences = new Set();
         let isAudioPlaying = false; 
+        let isChineseMode = false;
         const audioToggles = {}; 
         
         const mainAudio = new Audio();
         const scoreAudio = new Audio('audio/yinxiao-ding.mp3');
 
-        let isChineseActive = false;
-        let lastPlayedId = null;
-
-        const listEl = document.getElementById('list');
-        const scoreEl = document.getElementById('totalScore');
-        const bodyEl = document.getElementById('mainBody');
-
+        // 初始化页面内容
         function init() {
+            const listEl = document.getElementById('list');
+            listEl.innerHTML = ''; // 清空列表
+            
             sentences.forEach(s => {
                 audioToggles[s.id] = true;
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
+                li.id = `item-${s.id}`;
                 li.innerHTML = `
-                    <div class="sentence-no">${s.id}.</div>
+                    <div class="sentence-no">${s.id}</div>
                     <div class="text-content">
-                        <span class="zh-span">${s.zh}</span>
-                        <span class="th-span">${s.th}</span>
+                        <div class="zh-text" id="zh-${s.id}">${s.zh}</div>
+                        <div class="th-text" id="th-${s.id}">${s.th}</div>
                     </div>`;
                 li.onclick = () => handlePlay(s, li);
                 listEl.appendChild(li);
             });
             updateScore(false);
+            console.log("初始化完成，句子数量:", sentences.length);
         }
 
+        // 切换语言模式
         function toggleLanguage() {
             if (isAudioPlaying) return;
-            isChineseActive = !isChineseActive;
-            bodyEl.classList.toggle('show-zh', isChineseActive);
+            isChineseMode = !isChineseMode;
+            
+            const zhElements = document.querySelectorAll('.zh-text');
+            const thElements = document.querySelectorAll('.th-text');
+            
+            zhElements.forEach(el => el.style.display = isChineseMode ? 'block' : 'none');
+            thElements.forEach(el => el.style.display = isChineseMode ? 'none' : 'block');
         }
 
+        // 更新分数
         function updateScore(playDing = true) {
-            scoreEl.innerText = `${learnedSentences.size}/${sentences.length}`;
+            document.getElementById('totalScore').innerText = `${learnedSentences.size}/100`;
             if (playDing) {
                 scoreAudio.currentTime = 0;
                 scoreAudio.play().catch(() => {});
             }
         }
 
-        // 核心：淡入淡出模拟逻辑
+        // 播放逻辑 (含 0.1s 淡入淡出模拟)
         function playWithFade(url, onEnd) {
             mainAudio.src = url;
             mainAudio.volume = 0;
             
             mainAudio.onplay = () => {
-                // 0.1秒淡入
                 let vol = 0;
                 const fadeIn = setInterval(() => {
-                    vol += 0.1;
+                    vol += 0.2;
                     if (vol >= 1) { vol = 1; clearInterval(fadeIn); }
                     mainAudio.volume = vol;
-                }, 10);
+                }, 20);
             };
 
-            mainAudio.ontimeupdate = () => {
-                // 结尾前0.1秒淡出
-                if (mainAudio.duration - mainAudio.currentTime < 0.1) {
+            // 结尾淡出逻辑
+            const fadeOutCheck = setInterval(() => {
+                if (mainAudio.duration && mainAudio.duration - mainAudio.currentTime < 0.1) {
                     let vol = mainAudio.volume;
                     if (vol > 0) {
-                        vol -= 0.1;
+                        vol -= 0.2;
                         mainAudio.volume = Math.max(0, vol);
                     }
                 }
-            };
+            }, 20);
 
-            mainAudio.onended = onEnd;
-            mainAudio.onerror = onEnd;
+            mainAudio.onended = () => {
+                clearInterval(fadeOutCheck);
+                onEnd();
+            };
+            mainAudio.onerror = () => {
+                clearInterval(fadeOutCheck);
+                onEnd();
+            };
             mainAudio.play().catch(onEnd);
         }
 
+        // 点击播放处理
         function handlePlay(s, element) {
             if (isAudioPlaying) return;
-
             isAudioPlaying = true;
-            bodyEl.classList.add('locked-mode');
+            document.body.classList.add('locked-mode');
             element.classList.add('playing-now');
 
-            if (lastPlayedId !== s.id) { audioToggles[s.id] = true; }
             const fileName = audioToggles[s.id] ? `${s.id}.mp3` : `${s.id}-b.mp3`;
             const url = `audio/${fileName}`;
-            
             audioToggles[s.id] = !audioToggles[s.id];
-            lastPlayedId = s.id;
 
             playWithFade(url, () => {
                 isAudioPlaying = false;
-                bodyEl.classList.remove('locked-mode');
+                document.body.classList.remove('locked-mode');
                 element.classList.remove('playing-now');
                 element.classList.add('has-learned');
                 
@@ -314,7 +267,12 @@
             });
         }
 
-        init();
+        // 确保页面加载时立即执行初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
