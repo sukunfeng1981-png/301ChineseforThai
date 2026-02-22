@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>汉语口语极致互动版</title>
 
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
     <style>
         /* 字体声明 */
         @font-face {
@@ -57,7 +59,6 @@
             background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
             margin-bottom: 15px; padding: 20px; border-radius: 18px;
             cursor: pointer; display: flex; align-items: center;
-            /* GPU加速关键属性 */
             will-change: transform, box-shadow;
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); 
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
@@ -66,7 +67,7 @@
 
         /* 【播放中】1.2倍红色膨胀效果 */
         .playing-now {
-            transform: scale(1.18); /* 接近1.2倍的震撼感 */
+            transform: scale(1.18); 
             border: 2px solid #e74c3c !important;
             box-shadow: 0 20px 40px rgba(231, 76, 60, 0.3);
             z-index: 100;
@@ -104,7 +105,6 @@
     </div>
 
     <script>
-        // 数据部分（已包含100句）
         const sentences = [
             { id: 1, th: "สวัสดี", zh: "你好" }, { id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" },
             { id: 3, th: "สบายดี", zh: "很好，" }, { id: 4, th: "ฉันก็สบายดีเช่นกัน", zh: "我也很好，" },
@@ -114,7 +114,7 @@
             { id: 11, th: "ฉันไม่ค่อยยุ่ง", zh: "我不太忙，" }, { id: 12, th: "พ่อแม่คุณสุขภาพดีไหม", zh: "你爸爸妈妈身体好吗？" },
             { id: 13, th: "ฉันชื่อ Mary ค่ะ", zh: "我叫玛丽，" }, { id: 14, th: "ยินดีที่ได้รู้จักคุณ", zh: "认识你我很高兴，" },
             { id: 15, th: "คุณแซ่อะไร", zh: "您贵姓，" }, { id: 16, th: "คุณชื่ออะไร", zh: "你叫什么名字，" },
-            { id: 17, th: "เขาแซ่อะไร", zh: "他姓什么，" }, { id: 18, th: "เขาไม่ใช่อาจารย์ เขาเป็นนักเรียน", zh: "他不是老师，他是学生" },
+            { id: 17, th: "เขาแซ่อะไร", zh: "他姓什么，" }, { id: 18, th: "เขา不ใช่อาจารย์ เขาเป็นนักเรียน", zh: "他不是老师，他是学生" },
             { id: 19, th: "เขาเป็นใคร", zh: "他是谁，" }, { id: 20, th: "ผมขอแนะนำสักหน่อย", zh: "我介绍一下，" },
             { id: 21, th: "คุณจะไปไหน", zh: "你去哪，" }, { id: 22, th: "อาจารย์ Zhang อยู่บ้านไหม", zh: "张老师在家吗？" },
             { id: 23, th: "ฉันเป็นลูกศิษย์ของอาจารย์ Zhang", zh: "我是张老师的学生，" }, { id: 24, th: "เชิญเข้ามาข้างในก่อน", zh: "请进，" },
@@ -132,7 +132,7 @@
             { id: 47, th: "ห้องพักหมายเลขอะไร", zh: "多少号房间，" }, { id: 48, th: "บ้านคุณอยู่ที่ไหน", zh: "你家在哪儿，" },
             { id: 49, th: "ยินดีต้อนรับคุณไปเที่ยว", zh: "欢迎你去玩，" }, { id: 50, th: "เขาไปบ่อย", zh: "她常去，" },
             { id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "我们一起去吧，" }, { id: 52, th: "ถ้าอย่างนั้นดีมากๆเลย", zh: "那太好了，" },
-            { id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" }, { id: 54, th: "ไปตึก 8 ไปอย่างไร", zh: "去八号楼怎么走，" },
+            { id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" }, { id: 54, th: "去八号楼怎么走", zh: "去八号楼怎么走，" },
             { id: 55, th: "ตึกนั้นก็คือตึก 8", zh: "那个楼就是八号楼，" }, { id: 56, th: "ขอถามหน่อยครับ ที่ทำการไปรษณีย์อยู่ที่ไหนครับ", zh: "请问，邮局在哪儿，" },
             { id: 57, th: "เดินตรงไปข้างหน้าก็จะเป็นที่ทำการไปรษณีย์", zh: "往前走就是邮局，" }, { id: 58, th: "ที่ทำการไปรษณีย์อยู่ไกลจากที่นี่ไหม", zh: "邮局离这远不远，" },
             { id: 59, th: "ห้างสรรพสินค้าอยู่ที่ไหน", zh: "百货大楼在什么地方，" }, { id: 60, th: "ขึ้นรถที่ไหน", zh: "在哪儿坐车，" },
@@ -151,7 +151,7 @@
             { id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" }, { id: 86, th: "听说饭店里可以换钱", zh: "听说饭店里可以换钱，" },
             { id: 87, th: "这能不能换钱", zh: "这能不能换钱，" }, { id: 88, th: "您带的什么钱", zh: "您带的什么钱，" },
             { id: 89, th: "请您在这写一下钱数", zh: "请您在这写一下钱数，" }, { id: 90, th: "请数一数", zh: "请数一数，" },
-            { id: 91, th: "时间不早了", zh: "时间不早了，" }, { id: 92, th: "เราไปกันเถอะ", zh: "我们快走吧，" },
+            { id: 91, th: "时间不早了", zh: "时间不早了，" }, { id: 92, th: "เราไปกันเ推เถอะ", zh: "我们快走吧，" },
             { id: 93, th: "นี่เป็นไปรษณียบัตรออกใหม่", zh: "这是新出的明信片，" }, { id: 94, th: "还有好看的吗", zh: "还有好看的吗，" },
             { id: 95, th: "这几种怎么样", zh: "这几种怎么样，" }, { id: 96, th: "请你帮我挑几种", zh: "请你帮我挑几种，" },
             { id: 97, th: "一种买一套吧", zh: "一种买一套吧，" }, { id: 98, th: "手机没电了", zh: "手机没电了，" },
@@ -161,18 +161,30 @@
         let learnedSentences = new Set();
         let isAudioPlaying = false; 
         let isChineseMode = false;
-        
-        let lastPlayedId = null; // 记录上一次点击的ID
-        const audioToggles = {}; // 记录每个句子的A/B状态
+        let lastPlayedId = null; 
+        const audioToggles = {}; 
 
         const mainAudio = new Audio();
         const scoreAudio = new Audio('audio/yinxiao-ding.mp3');
 
-        function init() {
+        // --- LIFF 初始化函数 ---
+        async function init() {
+            try {
+                // 初始化 LIFF
+                await liff.init({ liffId: "2009077149-TmSHxUzU" });
+                
+                // 如果是在外部浏览器打开，引导登录到 LINE
+                if (!liff.isLoggedIn() && liff.isInClient()) {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF 初始化失败", err);
+            }
+
             const listEl = document.getElementById('list');
             listEl.innerHTML = '';
             sentences.forEach(s => {
-                audioToggles[s.id] = true; // 初始都设为播放A
+                audioToggles[s.id] = true; 
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
                 li.id = `item-${s.id}`;
@@ -209,7 +221,7 @@
             mainAudio.onplay = () => {
                 let vol = 0;
                 const fadeIn = setInterval(() => {
-                    vol += 0.25; // 极速淡入
+                    vol += 0.25; 
                     if (vol >= 1) { vol = 1; clearInterval(fadeIn); }
                     mainAudio.volume = vol;
                 }, 20);
@@ -227,18 +239,14 @@
             element.classList.remove('has-learned');
             element.classList.add('playing-now');
 
-            // --- 智能音频逻辑 ---
             if (lastPlayedId !== s.id) {
-                // 如果这次点击的和上次不一样，或者第一次点，重置这个句子的状态为播放A
                 audioToggles[s.id] = true; 
             }
             
             const fileName = audioToggles[s.id] ? `${s.id}.mp3` : `${s.id}-b.mp3`;
             const url = `audio/${fileName}`;
             
-            // 切换该句子的状态
             audioToggles[s.id] = !audioToggles[s.id];
-            // 更新最后播放ID
             lastPlayedId = s.id;
 
             playWithFade(url, () => {
