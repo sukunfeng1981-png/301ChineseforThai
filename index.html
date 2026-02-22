@@ -3,31 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>汉语口语301 - 互动点读版</title>
-
-    <link rel="preload" href="fonts/cn-YSHaoShenTi.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="fonts/th-MaliThin-Regular.ttf" as="font" type="font/truetype" crossorigin>
+    <title>汉语口语极致互动版</title>
 
     <style>
+        /* 字体声明 */
         @font-face {
             font-family: 'CN-Handwriting';
             src: url('fonts/cn-YSHaoShenTi.woff2') format('woff2');
-            font-weight: normal; font-style: normal; font-display: swap; 
+            font-display: swap; 
         }
         @font-face {
             font-family: 'TH-Handwriting';
             src: url('fonts/th-MaliThin-Regular.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
+            font-display: swap;
         }
 
         body {
             margin: 0; padding: 0; background-color: #f4f1de; 
             background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');
-            font-family: 'CN-Handwriting', 'TH-Handwriting', "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-family: 'CN-Handwriting', 'TH-Handwriting', "PingFang SC", sans-serif;
             display: flex; justify-content: center; min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* 播放时全局点击锁定 */
+        /* 播放时禁用所有点击，防止逻辑混乱 */
         body.locked-mode { pointer-events: none; }
 
         .phone-container {
@@ -46,45 +45,47 @@
         .lang-switch-btn {
             background: #2c3e50; color: #f4f1de; border: none;
             padding: 10px 22px; border-radius: 25px; font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .score-board { color: #c0392b; font-weight: bold; font-size: 18px; }
 
         h1 { margin: 0; font-size: 24px; color: #2c3e50; border-left: 5px solid #c0392b; padding-left: 12px; }
 
-        .sentence-list { list-style: none; margin: 0; padding: 10px 15px 50px; flex: 1; }
+        .sentence-list { list-style: none; margin: 0; padding: 10px 15px 100px; flex: 1; }
 
+        /* 核心卡片样式 */
         .sentence-item {
             background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
             margin-bottom: 15px; padding: 20px; border-radius: 18px;
             cursor: pointer; display: flex; align-items: center;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); /* MacBook 丝滑缩放 */
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            /* GPU加速关键属性 */
+            will-change: transform, box-shadow;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             position: relative;
         }
 
         /* 【播放中】1.2倍红色膨胀效果 */
         .playing-now {
-            transform: scale(1.15); /* 考虑到手机端1.2倍可能出界，采用1.15倍，效果同样震撼 */
+            transform: scale(1.18); /* 接近1.2倍的震撼感 */
             border: 2px solid #e74c3c !important;
-            box-shadow: 0 15px 35px rgba(231, 76, 60, 0.25);
+            box-shadow: 0 20px 40px rgba(231, 76, 60, 0.3);
             z-index: 100;
-            background: #fff;
+            background: #ffffff;
         }
 
         /* 【学习后】绿色效果 */
         .has-learned {
-            border: 1px solid #27ae60 !important;
-            background-color: rgba(39, 174, 96, 0.03) !important;
+            border: 1.5px solid #27ae60;
+            background-color: rgba(39, 174, 96, 0.04);
         }
         .has-learned .sentence-no { color: #27ae60 !important; }
 
-        .sentence-no { font-size: 18px; color: #999; margin-right: 18px; min-width: 30px; font-weight: bold; transition: color 0.3s; }
-        .text-content { font-size: 22px; line-height: 1.4; flex: 1; color: #000000; } /* 统一黑色 */
+        .sentence-no { font-size: 18px; color: #999; margin-right: 18px; min-width: 30px; font-weight: bold; }
+        .text-content { font-size: 22px; line-height: 1.4; flex: 1; color: #000000; }
 
-        .zh-text, .th-text { color: #000000; } /* 强制文字纯黑 */
+        .zh-text, .th-text { color: #000000; }
 
-        .footer-deco { padding: 40px 20px; text-align: center; opacity: 0.3; font-size: 12px; color: #2c3e50; }
+        .footer-deco { padding: 40px 20px; text-align: center; opacity: 0.3; font-size: 12px; }
     </style>
 </head>
 <body id="mainBody">
@@ -99,11 +100,11 @@
         </header>
         
         <ul class="sentence-list" id="list"></ul>
-
-        <div class="footer-deco">一一一 手写点读版 一一一</div>
+        <div class="footer-deco">一一一 极致流畅点读体验 一一一</div>
     </div>
 
     <script>
+        // 数据部分（已包含100句）
         const sentences = [
             { id: 1, th: "สวัสดี", zh: "你好" }, { id: 2, th: "คุณสบายดีไหม", zh: "你好吗，" },
             { id: 3, th: "สบายดี", zh: "很好，" }, { id: 4, th: "ฉันก็สบายดีเช่นกัน", zh: "我也很好，" },
@@ -119,13 +120,13 @@
             { id: 23, th: "ฉันเป็นลูกศิษย์ของอาจารย์ Zhang", zh: "我是张老师的学生，" }, { id: 24, th: "เชิญเข้ามาข้างในก่อน", zh: "请进，" },
             { id: 25, th: "วันนี้วันที่เท่าไร", zh: "今天几号，" }, { id: 26, th: "วันนี้วันที่ 8", zh: "今天8号，" },
             { id: 27, th: "วันนี้ไม่ใช่วันพฤหัส เมื่อวานวันพฤหัส", zh: "今天不是星期四，昨天星期四，" }, { id: 28, th: "ตอนเย็นคุณทำอะไร", zh: "晚上你做什么，" },
-            { id: 29, th: "วันเกิดของคุณวันที่เท่าไร เดือนอะไร", zh: "你的生日是几月几号，" }, { id: 30, th: "ตอนเช้าพวกเราไปบ้านเขา ดีไหม", zh: "เราจะไปบ้านเขาตอนเช้าดีไหม" },
+            { id: 29, th: "วันเกิดของคุณวันที่เท่าไร เดือนอะไร", zh: "你的生日是几月几号，" }, { id: 30, th: "ตอนเช้าพวกเราไปบ้านเขา ดีไหม", zh: "我们上午去他家好吗？" },
             { id: 31, th: "ครอบครัวคุณมีกี่คน", zh: "你家有几口人，" }, { id: 32, th: "คุณแม่คุณทำงานอะไร", zh: "你妈妈做什么工作，" },
             { id: 33, th: "เขาทำงานที่มหาวิทยาลัย", zh: "她在大学工作，" }, { id: 34, th: "ครอบครัวผมมีคุณพ่อ คุณแม่ 和น้องชายอีก 1 คน", zh: "我家有爸爸、妈妈和一个弟弟。" },
             { id: 35, th: "พี่ชายแต่งงานแล้ว", zh: "哥哥结婚了，" }, { id: 36, th: "พวกเขาไม่มีลูก", zh: "他们没有孩子。" },
             { id: 37, th: "ตอนนี้กี่โมง", zh: "现在几点，" }, { id: 38, th: "ตอนนี้ 7 โมง 25 นาที", zh: "现在七点二十五分，" },
             { id: 39, th: "คุณไปเรียนกี่โมง", zh: "你几点上课，" }, { id: 40, th: "ไปตอนอีก 15 นาทีจะ 8 โมง", zh: "差一刻八点去，" },
-            { id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" }, { id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "我们什么时候去，" },
+            { id: 41, th: "ฉันไปทานข้าว", zh: "我去吃饭，" }, { id: 42, th: "พวกเราจะไปกันเมื่อไร", zh: "เราจะไปกันเมื่อไหร่" },
             { id: 43, th: "เช้าเกินไปแล้ว", zh: "太早了，" }, { id: 44, th: "ผมก็ตื่น 6 โมงครึ่งเช่นกัน", zh: "我也六点半起床，" },
             { id: 45, th: "คุณพักอยู่ที่ไหน", zh: "你住在哪儿，" }, { id: 46, th: "ผมพักอยู่ที่หอพักนักศึกษาต่างชาติ", zh: "我住在留学生宿舍，" },
             { id: 47, th: "ห้องพักหมายเลขอะไร", zh: "多少号房间，" }, { id: 48, th: "บ้านคุณอยู่ที่ไหน", zh: "你家在哪儿，" },
@@ -150,18 +151,20 @@
             { id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" }, { id: 86, th: "听说饭店里可以换钱", zh: "听说饭店里可以换钱，" },
             { id: 87, th: "这能不能换钱", zh: "这能不能换钱，" }, { id: 88, th: "您带的什么钱", zh: "您带的什么钱，" },
             { id: 89, th: "请您在这写一下钱数", zh: "请您在这写一下钱数，" }, { id: 90, th: "请数一数", zh: "请数一数，" },
-            { id: 91, th: "时间不早了", zh: "时间不早了，" }, { id: 92, th: "我们快走吧", zh: "我们快走吧，" },
-            { id: 93, th: "这是新出的明信片", zh: "这是新出的明信片，" }, { id: 94, th: "还有好看的吗", zh: "还有好看的吗，" },
+            { id: 91, th: "时间不早了", zh: "时间不早了，" }, { id: 92, th: "เราไปกันเถอะ", zh: "我们快走吧，" },
+            { id: 93, th: "นี่เป็นไปรษณียบัตรออกใหม่", zh: "这是新出的明信片，" }, { id: 94, th: "还有好看的吗", zh: "还有好看的吗，" },
             { id: 95, th: "这几种怎么样", zh: "这几种怎么样，" }, { id: 96, th: "请你帮我挑几种", zh: "请你帮我挑几种，" },
             { id: 97, th: "一种买一套吧", zh: "一种买一套吧，" }, { id: 98, th: "手机没电了", zh: "手机没电了，" },
-            { id: 99, th: "你打通电话了吗", zh: "你打通电话了吗，" }, { id: 100, th: "她关机了", zh: "她关机了，" }
+            { id: 99, th: "คุณโทรติดหรือยัง", zh: "你打通电话了吗，" }, { id: 100, th: "她关机了", zh: "她关机了，" }
         ];
 
         let learnedSentences = new Set();
         let isAudioPlaying = false; 
         let isChineseMode = false;
-        const audioToggles = {}; 
         
+        let lastPlayedId = null; // 记录上一次点击的ID
+        const audioToggles = {}; // 记录每个句子的A/B状态
+
         const mainAudio = new Audio();
         const scoreAudio = new Audio('audio/yinxiao-ding.mp3');
 
@@ -169,7 +172,7 @@
             const listEl = document.getElementById('list');
             listEl.innerHTML = '';
             sentences.forEach(s => {
-                audioToggles[s.id] = true;
+                audioToggles[s.id] = true; // 初始都设为播放A
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
                 li.id = `item-${s.id}`;
@@ -206,7 +209,7 @@
             mainAudio.onplay = () => {
                 let vol = 0;
                 const fadeIn = setInterval(() => {
-                    vol += 0.2;
+                    vol += 0.25; // 极速淡入
                     if (vol >= 1) { vol = 1; clearInterval(fadeIn); }
                     mainAudio.volume = vol;
                 }, 20);
@@ -221,19 +224,27 @@
             isAudioPlaying = true;
             document.body.classList.add('locked-mode');
             
-            // 播放时移除学习状态，添加红色膨胀状态
             element.classList.remove('has-learned');
             element.classList.add('playing-now');
 
+            // --- 智能音频逻辑 ---
+            if (lastPlayedId !== s.id) {
+                // 如果这次点击的和上次不一样，或者第一次点，重置这个句子的状态为播放A
+                audioToggles[s.id] = true; 
+            }
+            
             const fileName = audioToggles[s.id] ? `${s.id}.mp3` : `${s.id}-b.mp3`;
             const url = `audio/${fileName}`;
+            
+            // 切换该句子的状态
             audioToggles[s.id] = !audioToggles[s.id];
+            // 更新最后播放ID
+            lastPlayedId = s.id;
 
             playWithFade(url, () => {
                 isAudioPlaying = false;
                 document.body.classList.remove('locked-mode');
                 
-                // 播放结束：移除红色膨胀，永久加上绿色状态
                 element.classList.remove('playing-now');
                 element.classList.add('has-learned');
                 
