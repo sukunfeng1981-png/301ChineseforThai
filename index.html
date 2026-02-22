@@ -222,7 +222,7 @@
             { id: 51, th: "พวกเราไปด้วยกันเถอะ", zh: "我们一起去吧，" },
             { id: 52, th: "ถ้าอย่างนั้นดีมากๆเลย", zh: "那太好了，" },
             { id: 53, th: "ตึก 8 อยู่ข้างที่ทำการไปรษณีย์", zh: "八号楼在邮局旁边，" },
-            { id: 54, th: "ไปตึก 8 ไปอย่างไร", zh: "去八号楼怎么走，" },
+            { id: 54, th: "ไปตึก 8 去如何去", zh: "去八号楼怎么走，" },
             { id: 55, th: "ตึกนั้นก็คือตึก 8", zh: "那个楼就是八号楼，" },
             { id: 56, th: "ขอถามหน่อยครับ ที่ทำการไปรษณีย์อยู่ที่ไหนครับ", zh: "请问，邮局在哪儿，" },
             { id: 57, th: "เดินตรงไปข้างหน้าก็จะเป็นที่ทำการไปรษณีย์", zh: "往前走就是邮局，" },
@@ -243,19 +243,19 @@
             { id: 72, th: "วันอาทิตย์คนเยอะเกินไป", zh: "星期天人多，" },
             { id: 73, th: "ฉันขอดูเสื้อไหมพรมตัวนั้นหน่อย", zh: "我看看那件毛衣，" },
             { id: 74, th: "เสื้อไหมพรมตัวนี้ผมขอลองหน่อยได้ไหม", zh: "这件毛衣我可以试试吗，" },
-            { id: 75, th: "เสื้อไหมพรมตัวนี้ ไม่เล็กก็ไม่ใหญ่", zh: "这件毛衣不大也不小，" },
+            { id: 75, th: "เสื้อไหมพรมตัวนี้ ไม่เล็กก็不小", zh: "这件毛衣不大也不小，" },
             { id: 76, th: "เยี่ยมมากเลย", zh: "好极了，" },
-            { id: 77, th: "รถสายนี้ไปจตุรัสเทียนอันเหมินไหม", zh: "这路车到天安门吗，" },
+            { id: 77, th: "รถสายนี้去天安门广场吗", zh: "这路车到天安门吗，" },
             { id: 78, th: "ผมซื้อตั๋ว 2 ใบ", zh: "我买两张票，" },
             { id: 79, th: "ให้คุณ 5 หยวน", zh: "给你五块钱，" },
-            { id: 80, th: "ถึงจตุรัสเทียนอันเหมินยังอีกกี่ป้าย", zh: "到天安门还有几站，" },
+            { id: 80, th: "到天安门广场还剩几站", zh: "到天安门还有几站，" },
             { id: 81, th: "ฉันพูดภาษาจีนได้นิดหน่อย", zh: "我会说一点汉语，" },
-            { id: 82, th: "ถึงจตุรัสเทียนอันเหมินแล้ว", zh: "天安门到了，" },
-            { id: 83, th: "ไปมหาวิทยาลัยภาษาต้องเปลี่ยนรถไหม", zh: "去语言大学要换车吗，" },
+            { id: 82, th: "到天安门广场了", zh: "天安门到了，" },
+            { id: 83, th: "去语言大学要换车吗", zh: "去语言大学要换车吗，" },
             { id: 84, th: "เปลี่ยนรถสายไหน", zh: "换几路车，" },
             { id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" },
             { id: 86, th: "ได้ยินมาว่าในโรงแรมสามารถแลกเงินได้", zh: "听说饭店里可以换钱，" },
-            { id: 87, th: "ที่นี่ แลกเงินได้หรือไม่ได้", zh: "这能不能换钱，" },
+            { id: 87, th: "ที่นี่ แลกเงินได้或不可以", zh: "这能不能换钱，" },
             { id: 88, th: "คุณนำเงินอะไรมา", zh: "您带的什么钱，" },
             { id: 89, th: "คุณกรุณาเขียนจำนวนเงินตรงนี้หน่อย", zh: "请您在这写一下钱数，" },
             { id: 90, th: "กรุณานับด้วย", zh: "请数一数，" },
@@ -267,14 +267,18 @@
             { id: 96, th: "คุณกรุณาช่วยผมเลือกซักสองสามแบบ", zh: "请你帮我挑几种，" },
             { id: 97, th: "เอาแบบละหนึ่งชุด", zh: "一种买一套吧，" },
             { id: 98, th: "โทรศัพท์แบตเตอรี่หมดแล้ว", zh: "手机没电了，" },
-            { id: 99, th: "คุณโทรติดหรือยัง", zh: "你打通电话了吗，" },
+            { id: 99, th: "คุณโทรติด或还没有", zh: "你打通电话了吗，" },
             { id: 100, th: "เขาปิดเครื่องแล้ว", zh: "她关机了，" }
         ];
 
         let learnedSentences = new Set();
         let isAudioPlaying = false; 
         const audioToggles = {}; 
-        const audioObj = new Audio();
+        
+        // --- Web Audio API 设置 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const scoreAudio = new Audio('audio/yinxiao-ding.mp3'); // 分数音效
+
         let isChineseActive = false;
         let lastPlayedId = null;
 
@@ -297,7 +301,7 @@
                 li.onclick = () => handlePlay(s, li);
                 listEl.appendChild(li);
             });
-            updateScore();
+            updateScore(false); // 初始更新，不播放音效
         }
 
         function toggleLanguage() {
@@ -306,40 +310,80 @@
             bodyEl.classList.toggle('show-zh', isChineseActive);
         }
 
-        function updateScore() {
+        function updateScore(playDing = true) {
             scoreEl.innerText = `${learnedSentences.size}/${sentences.length}`;
+            if (playDing) {
+                scoreAudio.currentTime = 0;
+                scoreAudio.play().catch(e => console.log("Ding error:", e));
+            }
+        }
+
+        /**
+         * 播放带淡入淡出的音频
+         */
+        async function playAudioWithFade(url, onEndCallback) {
+            try {
+                // 加载音频数据
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+                const source = audioCtx.createBufferSource();
+                const gainNode = audioCtx.createGain();
+
+                source.buffer = audioBuffer;
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                const duration = audioBuffer.duration;
+                const fadeTime = 0.1; // 0.1秒淡入淡出
+                const now = audioCtx.currentTime;
+
+                // 淡入
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(1, now + fadeTime);
+
+                // 淡出 (结尾前0.1秒开始)
+                gainNode.gain.setValueAtTime(1, now + duration - fadeTime);
+                gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+                source.start(now);
+                source.onended = onEndCallback;
+            } catch (e) {
+                console.error("Audio WebAPI Error:", e);
+                onEndCallback(); // 报错也得解锁
+            }
         }
 
         function handlePlay(s, element) {
             if (isAudioPlaying) return;
+
+            // 恢复 AudioContext (解决浏览器自动播放限制)
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
             isAudioPlaying = true;
             bodyEl.classList.add('locked-mode');
             element.classList.add('playing-now');
 
             if (lastPlayedId !== s.id) { audioToggles[s.id] = true; }
-            let fileName = audioToggles[s.id] ? `${s.id}.mp3` : `${s.id}-b.mp3`;
-            audioObj.src = `audio/${fileName}`;
+            const fileName = audioToggles[s.id] ? `${s.id}.mp3` : `${s.id}-b.mp3`;
+            const url = `audio/${fileName}`;
+            
             audioToggles[s.id] = !audioToggles[s.id];
             lastPlayedId = s.id;
 
-            audioObj.play().catch(() => resetState(element));
-            
-            audioObj.onended = () => {
+            // 使用 Web Audio API 播放并处理淡入淡出
+            playAudioWithFade(url, () => {
                 isAudioPlaying = false;
                 bodyEl.classList.remove('locked-mode');
                 element.classList.remove('playing-now');
                 element.classList.add('has-learned');
+                
                 if (!learnedSentences.has(s.id)) {
                     learnedSentences.add(s.id);
-                    updateScore();
+                    updateScore(true); // 播放丁音
                 }
-            };
-        }
-
-        function resetState(element) {
-            isAudioPlaying = false;
-            bodyEl.classList.remove('locked-mode');
-            element.classList.remove('playing-now');
+            });
         }
 
         init();
