@@ -8,7 +8,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <style>
-        /* 字体加载优化：仅加载必要字符或使用系统字体兜底 */
+        /* 字体加载优化 */
         @font-face {
             font-family: 'CN-Handwriting';
             src: url('fonts/cn-YSHaoShenTi.woff2') format('woff2');
@@ -33,11 +33,10 @@
             font-family: 'CN-Handwriting', 'TH-Handwriting', "PingFang SC", sans-serif;
             display: flex; justify-content: center; min-height: 100vh;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased; /* 字体平滑 */
-            touch-action: manipulation; /* 消除点击延迟 */
+            -webkit-font-smoothing: antialiased;
+            touch-action: manipulation;
         }
 
-        /* 硬件加速：锁定模式 */
         body.locked-mode { pointer-events: none; }
 
         .phone-container {
@@ -50,7 +49,7 @@
             padding: 45px 20px 15px;
             position: sticky; top: 0;
             background: var(--bg-color); z-index: 1000;
-            transform: translateZ(0); /* 开启GPU加速 */
+            transform: translateZ(0);
         }
 
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -79,7 +78,6 @@
 
         .sentence-list { list-style: none; margin: 0; padding: 10px 15px 100px; flex: 1; }
 
-        /* 卡片优化：使用 will-change 提前告知浏览器渲染逻辑 */
         .sentence-item {
             background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
             margin-bottom: 15px; padding: 20px; border-radius: 18px;
@@ -91,7 +89,7 @@
         }
 
         .playing-now {
-            transform: scale(1.05); /* 手机端缩放倍率不宜过大，防止模糊 */
+            transform: scale(1.05);
             border: 2px solid #e74c3c !important;
             box-shadow: 0 10px 25px rgba(231, 76, 60, 0.2);
             z-index: 10;
@@ -105,7 +103,7 @@
         .sentence-no { font-size: 18px; color: #999; margin-right: 18px; min-width: 30px; font-weight: bold; }
         .text-content { font-size: 20px; line-height: 1.4; flex: 1; color: #000; }
         
-        .zh-text { display: none; } /* 初始隐藏，由 JS 控制 */
+        .zh-text { display: none; }
         .th-text { display: block; }
 
         .footer-deco { padding: 40px 20px; text-align: center; opacity: 0.3; font-size: 12px; }
@@ -131,7 +129,7 @@
 
     <script>
         const sentences = [
-                     { id: 1, th: "สวัสดี", zh: "你好，" },
+            { id: 1, th: "สวัสดี", zh: "你好，" },
             { id: 2, th: "สบายดีไหม", zh: "你好吗？" },
             { id: 3, th: "สบายดี", zh: "我很好，" },
             { id: 4, th: "ฉันก็สบายดี", zh: "我也很好，" },
@@ -160,7 +158,7 @@
             { id: 27, th: "วันนี้ไม่ใช่วันพฤหัส เมื่อวานวันพฤหัส", zh: "今天不是星期四，昨天星期四，" },
             { id: 28, th: "ตอนเย็นคุณจะทำอะไร", zh: "晚上你做什么？" },
             { id: 29, th: "วันเกิดคุณ วันที่เท่าไรเดือนอะไร", zh: "你的生日是几月几号？" },
-            { id: 30, th: "พวกเราไปบ้านเขาตอนเช้า ดีไหม", zh: "我们上午去他家好吗？" },
+            { id: 30, th: "พวกเรา去บ้านเขาตอนเช้า ดีไหม", zh: "我们上午去他家好吗？" },
             { id: 31, th: "ครอบครัวคุณมีกี่คน", zh: "你家有几口人？" },
             { id: 32, th: "แม่คุณทำงานอะไร", zh: "你妈妈做什么工作？" },
             { id: 33, th: "เขาทำงานที่มหาวิทยาลัย", zh: "她在大学工作，" },
@@ -211,19 +209,19 @@
             { id: 78, th: "ฉันซื้อตั๋ว 2 ใบ", zh: "我买两张票，" },
             { id: 79, th: "จ่ายให้คุณ 5 หยวน", zh: "给你五块钱，" },
             { id: 80, th: "ยังมีอีกกี่ป้ายถึงจตุรัสเทียนอันเหมิน", zh: "到天安门还有几站？" },
-            { id: 81, th: "ฉันพูดภาษาจีนได้นิดหน่อย", zh: "我会说一点汉语，" },
+            { id: 81, th: "ฉันพูดภาษา汉语ได้นิดหน่อย", zh: "我会说一点汉语，" },
             { id: 82, th: "ถึงจตุรัสเทียนอันเหมินแล้ว", zh: "天安门到了，" },
             { id: 83, th: "ไปมหาวิทยาลัยภาษาต้องเปลี่ยนรถไหม", zh: "去语言大学要换车吗？" },
             { id: 84, th: "เปลี่ยนรถสายไหน", zh: "换几路车？" },
-            { id: 85, th: "เงินใช้หมดแล้ว", zh: "钱都花了，" },
-            { id: 86, th: "ได้ยินมาว่า ในโรงแรมสามารถแลกเงินได้", zh: "听说饭店里可以换钱，" },
+            { id: 85, th: "เงินใช้หมด已经了", zh: "钱都花了，" },
+            { id: 86, th: "ได้ยินมาว่า 饭店里可以换钱", zh: "听说饭店里可以换钱，" },
             { id: 87, th: "ที่นี่แลกเงินได้ไหม", zh: "这能不能换钱？" },
             { id: 88, th: "คุณนำเงินอะไรมาแลก", zh: "您带的什么钱？" },
             { id: 89, th: "กรุณาเขียนจำนวนเงินตรงนี้ให้หน่อย", zh: "请您在这写一下钱数，" },
             { id: 90, th: "กรุณานับหน่อยด้วย", zh: "请数一数，" },
             { id: 91, th: "จะสายแล้วนะ", zh: "时间不早了，" },
-            { id: 92, th: "พวกเรารีบไปกันเถอะ", zh: "我们快走吧，" },
-            { id: 93, th: "นี่เป็นโปสการ์ดออกใหม่", zh: "这是新出的明信片，" },
+            { id: 92, th: "พวกเรา快走吧", zh: "我们快走吧，" },
+            { id: 93, th: "นี่เป็นโป斯การ์ดออกใหม่", zh: "这是新出的明信片，" },
             { id: 94, th: "ยังมีที่สวยๆอีกไหม", zh: "还有好看的吗，" },
             { id: 95, th: "แบบนี้เป็นอย่างไรบ้าง", zh: "这几种怎么样？" },
             { id: 96, th: "กรุณาช่วยเลือกซัก2-3แบบ", zh: "请你帮我挑几种，" },
@@ -236,13 +234,10 @@
         let learnedSentences = new Set();
         let isAudioPlaying = false; 
         let isChineseMode = false;
-        let lastPlayedId = null; 
-        const audioToggles = {}; 
 
-        // 统一音频池优化性能
         const mainAudio = new Audio();
         const scoreAudio = new Audio('audio/yinxiao-ding.mp3');
-        scoreAudio.load(); // 预加载提示音
+        const bubbleAudio = new Audio('audio/yinxiao-qipao.mp3'); // 新增气泡音效
 
         const ui = {
             list: document.getElementById('list'),
@@ -254,7 +249,6 @@
 
         async function init() {
             try {
-                // 仅在 LIFF 环境初始化
                 if (window.liff) {
                     await liff.init({ liffId: "2009077149-TmSHxUzU" });
                 }
@@ -265,11 +259,9 @@
             updateScore(false);
         }
 
-        // 性能优化：使用 DocumentFragment 减少 DOM 操作
         function renderList() {
             const fragment = document.createDocumentFragment();
             sentences.forEach(s => {
-                audioToggles[s.id] = true; 
                 const li = document.createElement('li');
                 li.className = 'sentence-item';
                 li.id = `item-${s.id}`;
@@ -289,7 +281,6 @@
             if (isAudioPlaying) return;
             isChineseMode = !isChineseMode;
             
-            // 优化：批量样式修改
             const zh = document.querySelectorAll('.zh-text');
             const th = document.querySelectorAll('.th-text');
             
@@ -314,23 +305,15 @@
         function handlePlay(s, element) {
             if (isAudioPlaying) return;
             
-            // 手机反馈
             if (navigator.vibrate) navigator.vibrate(20);
 
             isAudioPlaying = true;
             ui.body.classList.add('locked-mode');
             element.classList.add('playing-now');
 
-            // 逻辑处理
-            if (lastPlayedId !== s.id) audioToggles[s.id] = true; 
-            const url = `audio/${audioToggles[s.id] ? s.id : s.id + '-b'}.mp3`;
-            audioToggles[s.id] = !audioToggles[s.id];
-            lastPlayedId = s.id;
+            mainAudio.src = `audio/${s.id}.mp3`;
 
-            // 播放逻辑
-            mainAudio.src = url;
             mainAudio.onplay = () => {
-                // 渐入效果优化：减少定时器频率
                 mainAudio.volume = 0;
                 let v = 0;
                 const fade = setInterval(() => {
@@ -344,11 +327,17 @@
                 isAudioPlaying = false;
                 ui.body.classList.remove('locked-mode');
                 element.classList.remove('playing-now');
-                element.classList.add('has-learned');
                 
+                // 判断是否是第一次点击
                 if (!learnedSentences.has(s.id)) {
+                    // 第一次学习：增加分数并播报叮声
+                    element.classList.add('has-learned');
                     learnedSentences.add(s.id);
                     updateScore(true);
+                } else {
+                    // 已经学过：直接播放气泡音效
+                    bubbleAudio.currentTime = 0;
+                    bubbleAudio.play().catch(()=>{});
                 }
             };
             
