@@ -1,7 +1,3 @@
-const supabase = window.supabase.createClient(
-  "https://kbewntvlplfcmrbsskol.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZXdudHZscGxmY21yYnNza29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MzcwOTcsImV4cCI6MjA5MzAxMzA5N30.BjfrU-JLNX2lH8er2JbVzepKiOXfWGBgZ8XxP9Hurk4"
-);
 const sentences = [
         { id: 205, th: "คุณชอบกีฬาอะไร", zh: "你喜欢什么运动，" },
     { id: 206, th: "ปีนเขา เล่นสเก็ตน้ำแข็ง ว่ายน้ำ ผมชอบทั้งหมดเลย", zh: "爬山，滑冰，游泳，我都喜欢，" },
@@ -197,11 +193,10 @@ function handlePlay(s, element) {
         feedbackAudio.play().catch(()=>{});
 
         // 逻辑处理：更新分数
-    if (isFirstTime) {
-    learnedSentences.add(s.id);
-    saveProgress(s.id); // 🔥 关键
-    updateScore(false); 
-}
+        if (isFirstTime) {
+            learnedSentences.add(s.id);
+            updateScore(false); 
+        }
 
         // 音效播放结束后，彻底解除锁定（允许点击下一句）
         feedbackAudio.onended = () => {
@@ -249,27 +244,3 @@ function showCongrats() {
 }
 
 window.onload = init;
-
-async function saveProgress(sentenceId) {
-    try {
-        if (!liff.isLoggedIn()) return;
-
-        const profile = await liff.getProfile();
-
-        const { error } = await supabase
-            .from('progress')
-            .insert({
-                user_id: profile.userId,
-                sentence_id: sentenceId
-            });
-
-        if (error) {
-            console.error("Supabase错误:", error);
-        } else {
-            console.log("✅ 已保存:", sentenceId);
-        }
-
-    } catch (err) {
-        console.error("保存失败:", err);
-    }
-}
